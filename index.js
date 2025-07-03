@@ -301,7 +301,7 @@ const app = express();
 const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
 const BASE_URL = 'https://workspace.nafisofia110.repl.co';
-const REDIRECT_URI = process.env.REDIRECT_URI || `${BASE_URL}/callback`;
+const REDIRECT_URI = `${BASE_URL}/callback`;
 
 // Crea la cartella tokens se non esiste
 if (!fs.existsSync('tokens')) {

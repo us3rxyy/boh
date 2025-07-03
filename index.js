@@ -174,7 +174,7 @@ async function handleCurrentSong(sock, chatId) {
   if (!token) {
     const replyMessage = `🎵 *Connetti Spotify per usare !cur*
 
-🔗 ${BASE_URL}
+🔗 https://boh-zl4s.onrender.com
 
 Vai al link, clicca su "Connetti Spotify" e autorizza l'accesso!`;
 
@@ -196,7 +196,7 @@ Vai al link, clicca su "Connetti Spotify" e autorizza l'accesso!`;
     const replyMessage = currentTrack.needsReauth 
       ? `❌ ${currentTrack.error}
 
-🔗 Riconnetti Spotify: ${BASE_URL}`
+🔗 Riconnetti Spotify: https://boh-zl4s.onrender.com`
       : `❌ ${currentTrack.error}`;
 
     await sock.sendMessage(chatId, { text: replyMessage });

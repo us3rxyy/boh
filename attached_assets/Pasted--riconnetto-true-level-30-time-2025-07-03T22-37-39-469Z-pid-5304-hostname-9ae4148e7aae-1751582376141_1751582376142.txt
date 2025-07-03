@@ -1,0 +1,26 @@
+ riconnetto: true
+{"level":30,"time":"2025-07-03T22:37:39.469Z","pid":5304,"hostname":"9ae4148e7aae","class":"baileys","trace":"Error: Stream Errored (conflict)\n    at WebSocketClient.<anonymous> (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/socket.js:524:13)\n    at WebSocketClient.emit (node:events:518:28)\n    at /home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/socket.js:241:35\n    at Object.decodeFrame (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Utils/noise-handler.js:144:17)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","msg":"connection errored"}
+{"level":30,"time":"2025-07-03T22:37:39.617Z","pid":5304,"hostname":"9ae4148e7aae","class":"baileys","browser":["Ubuntu","Chrome","22.04.4"],"helloMsg":{"clientHello":{"ephemeral":"o9f1QIRpnaO3O7HPKPdYJmj5iKs/KERYkJooMkCFbiQ="}},"msg":"connected to WA"}
+{"level":30,"time":"2025-07-03T22:37:39.666Z","pid":5304,"hostname":"9ae4148e7aae","class":"baileys","node":{"username":"393533413980","passive":false,"userAgent":{"platform":"WEB","appVersion":{"primary":2,"secondary":3000,"tertiary":1023223821},"mcc":"000","mnc":"000","osVersion":"0.1","device":"Desktop","osBuildNumber":"0.1","releaseChannel":"RELEASE","localeLanguageIso6391":"en","localeCountryIso31661Alpha2":"US"},"webInfo":{"webSubPlatform":"WEB_BROWSER"},"connectType":"WIFI_UNKNOWN","connectReason":"USER_ACTIVATED","device":2,"pull":true},"msg":"logging in..."}
+{"level":30,"time":"2025-07-03T22:37:39.934Z","pid":5304,"hostname":"9ae4148e7aae","class":"baileys","msg":"20 pre-keys found on server"}
+{"level":30,"time":"2025-07-03T22:37:39.974Z","pid":5304,"hostname":"9ae4148e7aae","class":"baileys","msg":"handled 0 offline messages/notifications"}
+{"level":30,"time":"2025-07-03T22:37:39.982Z","pid":5304,"hostname":"9ae4148e7aae","class":"baileys","msg":"opened connection to WA"}
+Bot WhatsApp connesso!
+{"level":50,"time":"2025-07-03T22:37:40.829Z","pid":5304,"hostname":"9ae4148e7aae","class":"baileys","node":{"tag":"stream:error","attrs":{},"content":[{"tag":"conflict","attrs":{"type":"replaced"}}]},"msg":"stream errored out"}
+Connessione chiusa per: Error: Stream Errored (conflict)
+    at WebSocketClient.<anonymous> (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/socket.js:524:13)
+    at WebSocketClient.emit (node:events:518:28)
+    at /home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/socket.js:241:35
+    at Object.decodeFrame (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Utils/noise-handler.js:144:17)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  data: { tag: 'stream:error', attrs: {}, content: [ [Object] ] },
+  isBoom: true,
+  isServer: false,
+  output: {
+    statusCode: 440,
+    payload: {
+      statusCode: 440,
+      error: 'Unknown',
+      message: 'Stream Errored (conflict)'
+    },
+    headers: {}

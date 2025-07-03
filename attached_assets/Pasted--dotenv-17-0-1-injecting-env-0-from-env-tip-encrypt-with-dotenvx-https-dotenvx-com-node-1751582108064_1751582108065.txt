@@ -1,0 +1,17 @@
+[dotenv@17.0.1] injecting env (0) from .env – [tip] encrypt with dotenvx: https://dotenvx.com
+(node:5169) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✅ Server Express attivo su porta 3000
+URL del bot: https://boh-zl4s.onrender.com
+Redirect URI: https://boh-zl4s.onrender.com/callback
+🌐 Server accessibile dall'esterno su: https://boh-zl4s.onrender.com
+{"level":30,"time":"2025-07-03T22:33:59.320Z","pid":5169,"hostname":"9ae4148e7aae","class":"baileys","browser":["Ubuntu","Chrome","22.04.4"],"helloMsg":{"clientHello":{"ephemeral":"FLopLzDkVUNjTYbSWLIGmhNTsQFEw0cxK98i4xWj1X8="}},"msg":"connected to WA"}
+{"level":30,"time":"2025-07-03T22:33:59.346Z","pid":5169,"hostname":"9ae4148e7aae","class":"baileys","node":{"username":"393533413980","passive":false,"userAgent":{"platform":"WEB","appVersion":{"primary":2,"secondary":3000,"tertiary":1023223821},"mcc":"000","mnc":"000","osVersion":"0.1","device":"Desktop","osBuildNumber":"0.1","releaseChannel":"RELEASE","localeLanguageIso6391":"en","localeCountryIso31661Alpha2":"US"},"webInfo":{"webSubPlatform":"WEB_BROWSER"},"connectType":"WIFI_UNKNOWN","connectReason":"USER_ACTIVATED","device":2,"pull":true},"msg":"logging in..."}
+{"level":30,"time":"2025-07-03T22:33:59.650Z","pid":5169,"hostname":"9ae4148e7aae","class":"baileys","msg":"handled 0 offline messages/notifications"}
+{"level":30,"time":"2025-07-03T22:33:59.655Z","pid":5169,"hostname":"9ae4148e7aae","class":"baileys","msg":"20 pre-keys found on server"}
+{"level":30,"time":"2025-07-03T22:33:59.671Z","pid":5169,"hostname":"9ae4148e7aae","class":"baileys","msg":"opened connection to WA"}
+Bot WhatsApp connesso!
+{"level":50,"time":"2025-07-03T22:34:00.066Z","pid":5169,"hostname":"9ae4148e7aae","class":"baileys","node":{"tag":"stream:error","attrs":{},"content":[{"tag":"conflict","attrs":{"type":"replaced"}}]},"msg":"stream errored out"}
+Connessione chiusa per: Error: Stream Errored (conflict)
+    at WebSocketClient.<anonymous> (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/socket.js:524:13)
+    at WebSocketClient.emit (node:events:518:28)

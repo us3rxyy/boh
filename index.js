@@ -120,38 +120,50 @@ function getRandomResponse(list) {
 
 async function getCurrentSpotifyTrack(accessToken) {
   try {
+    console.log('🎵 Chiamando Spotify API per canzone corrente...');
     const response = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
       headers: {
         'Authorization': `Bearer ${accessToken}`
       }
     });
 
+    console.log('🎵 Spotify API Response Status:', response.status);
+
     if (response.status === 204) {
-      return { error: 'Nessuna canzone in riproduzione' };
+      console.log('🎵 Nessuna canzone in riproduzione (204)');
+      return { error: 'Nessuna canzone in riproduzione su Spotify.\n\n💡 Assicurati di:\n- Avere Spotify aperto\n- Stare ascoltando una canzone\n- Usare Spotify Premium (se richiesto)' };
     }
 
     if (response.status === 401) {
+      console.log('🎵 Token scaduto (401)');
       return { error: 'Token scaduto', needsReauth: true };
     }
 
     if (response.status === 403) {
-      return { error: 'Spotify Premium richiesto per questa funzione' };
+      console.log('🎵 Spotify Premium richiesto (403)');
+      return { error: 'Spotify Premium richiesto per questa funzione.\n\n💡 Alcune funzioni di Spotify Web API richiedono un abbonamento Premium.' };
     }
 
     if (response.status === 429) {
+      console.log('🎵 Rate limit raggiunto (429)');
       return { error: 'Troppe richieste, riprova tra qualche minuto' };
     }
 
     if (!response.ok) {
-      console.error('Spotify API Error:', response.status, await response.text());
-      return { error: `Errore Spotify (${response.status})` };
+      const errorText = await response.text();
+      console.error('🎵 Spotify API Error:', response.status, errorText);
+      return { error: `Errore Spotify (${response.status}): ${errorText}` };
     }
 
     const data = await response.json();
+    console.log('🎵 Spotify API Data ricevuto:', JSON.stringify(data, null, 2));
 
     if (!data || !data.item) {
-      return { error: 'Nessuna canzone in riproduzione' };
+      console.log('🎵 Nessun item nella risposta');
+      return { error: 'Nessuna canzone in riproduzione.\n\n💡 Assicurati di avere Spotify aperto e una canzone in riproduzione.' };
     }
+
+    console.log('🎵 Canzone trovata:', data.item.name, 'by', data.item.artists.map(a => a.name).join(', '));
 
     return {
       name: data.item.name,
@@ -163,15 +175,17 @@ async function getCurrentSpotifyTrack(accessToken) {
       duration_ms: data.item.duration_ms
     };
   } catch (error) {
-    console.error('Errore Spotify API:', error);
-    return { error: 'Errore nel contattare Spotify' };
+    console.error('🎵 Errore Spotify API:', error);
+    return { error: 'Errore nel contattare Spotify: ' + error.message };
   }
 }
 
 async function handleCurrentSong(sock, chatId) {
+  console.log('🎵 Comando !cur ricevuto, controllo token...');
   let token = await getValidSpotifyToken();
 
   if (!token) {
+    console.log('🎵 Nessun token trovato, invio messaggio di connessione...');
     const replyMessage = `🎵 *Connetti Spotify per usare !cur*
 
 🔗 https://boh-zl4s.onrender.com
@@ -182,17 +196,20 @@ Vai al link, clicca su "Connetti Spotify" e autorizza l'accesso!`;
     return;
   }
 
+  console.log('🎵 Token trovato, chiamo getCurrentSpotifyTrack...');
   let currentTrack = await getCurrentSpotifyTrack(token);
 
   if (currentTrack.needsReauth) {
     console.log('🔄 Token scaduto, tentativo di refresh automatico...');
     token = await getValidSpotifyToken(); // Forza il refresh
     if (token) {
+      console.log('🔄 Token refreshato, riprovo...');
       currentTrack = await getCurrentSpotifyTrack(token);
     }
   }
 
   if (currentTrack.error) {
+    console.log('🎵 Errore ricevuto:', currentTrack.error);
     const replyMessage = currentTrack.needsReauth 
       ? `❌ ${currentTrack.error}
 
@@ -203,6 +220,7 @@ Vai al link, clicca su "Connetti Spotify" e autorizza l'accesso!`;
     return;
   }
 
+  console.log('🎵 Canzone ricevuta con successo, invio messaggio...');
   let progressText = '';
   if (currentTrack.progress_ms && currentTrack.duration_ms) {
     const progress = Math.floor((currentTrack.progress_ms / currentTrack.duration_ms) * 100);
@@ -220,6 +238,7 @@ ${statusIcon} **${currentTrack.name}**
 🔗 ${currentTrack.external_url}`;
 
   await sock.sendMessage(chatId, { text: replyMessage });
+  console.log('🎵 Messaggio inviato con successo!');
 }
 
 async function startBot() {

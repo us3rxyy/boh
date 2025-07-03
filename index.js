@@ -683,7 +683,7 @@ app.get('/clear', (req, res) => {
 });
 
 // Avvia il server Express
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Server Express attivo su porta ${PORT}`);
   console.log(`URL del bot: ${BASE_URL}`);

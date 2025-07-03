@@ -166,11 +166,11 @@ async function handleCurrentSong(sock, chatId) {
 
   if (!token) {
     // Nessun token valido, invia il link per connettersi
-    const replyMessage = `❌ Non hai ancora connesso il tuo account per poter usare "!cur". Fallo dal link sottostante:
+    const replyMessage = `🎵 *Connetti Spotify per usare !cur*
 
-🎵 ${process.env.REPL_URL || 'https://' + process.env.REPL_SLUG + '.' + process.env.REPL_OWNER + '.repl.co'}
+🔗 https://osvaldobot.com
 
-Clicca su "Connetti Spotify" per autorizzare l'accesso e poi riprova il comando!`;
+Vai al link, clicca su "Connetti Spotify" e autorizza l'accesso!`;
 
     await sock.sendMessage(chatId, { text: replyMessage });
     return;
@@ -180,7 +180,11 @@ Clicca su "Connetti Spotify" per autorizzare l'accesso e poi riprova il comando!
   const currentTrack = await getCurrentSpotifyTrack(token);
 
   if (currentTrack.error) {
-    await sock.sendMessage(chatId, { text: `❌ ${currentTrack.error}` });
+    // Se c'è un errore, mostra comunque il link per riconnettere
+    const replyMessage = `❌ ${currentTrack.error}
+
+🔗 Riconnetti Spotify: https://osvaldobot.com`;
+    await sock.sendMessage(chatId, { text: replyMessage });
     return;
   }
 
@@ -360,7 +364,7 @@ app.get('/', (req, res) => {
 
           body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(to bottom, #1db954 0%, #000000 100%);
             min-height: 100vh;
             color: white;
           }
@@ -548,31 +552,6 @@ app.get('/', (req, res) => {
           </div>
 
           <div class="cards-container">
-            <div class="card">
-              <div class="card-title">
-                <span class="emoji">💬</span>
-                Comandi WhatsApp
-              </div>
-              <ul class="command-list">
-                <li class="command-item">
-                  <div class="command">!hey</div>
-                  <div class="description">insulti</div>
-                </li>
-                <li class="command-item">
-                  <div class="command">!schizzo</div>
-                  <div class="description">è tre anni che ci stavo assieme...</div>
-                </li>
-                <li class="command-item">
-                  <div class="command">!diabla</div>
-                  <div class="description">io divina tu divana</div>
-                </li>
-                <li class="command-item">
-                  <div class="command">!cur</div>
-                  <div class="description">mostra la canzone corrente su Spotify</div>
-                </li>
-              </ul>
-            </div>
-
             <div class="card spotify-section">
               <div class="card-title">
                 <span class="emoji">🎵</span>

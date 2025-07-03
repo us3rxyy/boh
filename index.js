@@ -284,7 +284,9 @@ const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
 const BASE_URL = process.env.VERCEL_URL 
   ? `https://${process.env.VERCEL_URL}` 
-  : 'https://workspace-nafisofia110.replit.app';
+  : (process.env.NODE_ENV === 'production' 
+     ? 'https://il-tuo-dominio-vercel.vercel.app' 
+     : 'https://workspace-nafisofia110.replit.app');
 const REDIRECT_URI = `${BASE_URL}/callback`;
 
 // Crea la cartella tokens se non esiste

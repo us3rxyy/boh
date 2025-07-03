@@ -197,7 +197,7 @@ app.get('/', (req, res) => {
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Osvaldo Bot Dashboard</title>
+        <title>Sofia's Bot Dashboard</title>
         <style>
           * {
             margin: 0;
@@ -387,7 +387,7 @@ app.get('/', (req, res) => {
       <body>
         <div class="container">
           <div class="header">
-            <div class="logo">🤖 OSVALDO BOT</div>
+            <div class="logo">🤖 Sofia's bot</div>
             <div class="subtitle">
               <span class="status-indicator"></span>
               Dashboard di Controllo Attiva
@@ -403,23 +403,17 @@ app.get('/', (req, res) => {
               <ul class="command-list">
                 <li class="command-item">
                   <div class="command">!hey</div>
-                  <div class="description">Il 99% sono insulti creativi</div>
+                  <div class="description">insulti</div>
                 </li>
                 <li class="command-item">
                   <div class="command">!schizzo</div>
-                  <div class="description">La risposta epica della tipa</div>
+                  <div class="description">è tre anni che ci stavo assieme...</div>
                 </li>
                 <li class="command-item">
                   <div class="command">!diabla</div>
-                  <div class="description">Frasi da vera diabla</div>
+                  <div class="description">io divina tu divana</div>
                 </li>
-                <li class="command-item">
-                  <div class="command">!no</div>
-                  <div class="description">La risposta diplomatica di Sofia</div>
-                </li>
-                <li class="command-item">
-                  <div class="command">!ryan</div>
-                  <div class="description">Messaggio speciale per Ryan</div>
+                
                 </li>
               </ul>
             </div>
@@ -446,7 +440,7 @@ app.get('/', (req, res) => {
           </div>
           
           <div class="footer">
-            <p>🚀 Bot sviluppato su Replit | 💝 Made with love and sarcasm</p>
+            <p>💝 Made with love by Sofia Nafi</p>
           </div>
         </div>
       </body>

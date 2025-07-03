@@ -168,7 +168,7 @@ async function handleCurrentSong(sock, chatId) {
     // Nessun token valido, invia il link per connettersi
     const replyMessage = `🎵 *Connetti Spotify per usare !cur*
 
-🔗 https://nafisofia110.replit.dev
+🔗 https://esplodi-1.nafisofia110.replit.dev
 
 Vai al link, clicca su "Connetti Spotify" e autorizza l'accesso!`;
 
@@ -183,7 +183,7 @@ Vai al link, clicca su "Connetti Spotify" e autorizza l'accesso!`;
     // Se c'è un errore, mostra comunque il link per riconnettere
     const replyMessage = `❌ ${currentTrack.error}
 
-🔗 Riconnetti Spotify: https://nafisofia110.replit.dev`;
+🔗 Riconnetti Spotify: https://esplodi-1.nafisofia110.replit.dev`;
     await sock.sendMessage(chatId, { text: replyMessage });
     return;
   }
@@ -647,5 +647,5 @@ app.get('/test', (req, res) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Server Express attivo su porta ${PORT}`);
-  console.log('URL del bot: https://nafisofia110.replit.dev');
+  console.log('URL del bot: https://esplodi-1.nafisofia110.replit.dev');
 });

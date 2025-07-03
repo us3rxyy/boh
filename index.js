@@ -239,13 +239,27 @@ async function startBot() {
     }
 
     if (connection === 'close') {
-      const shouldReconnect = (lastDisconnect.error)?.output?.statusCode !== DisconnectReason.loggedOut;
+      const statusCode = (lastDisconnect.error)?.output?.statusCode;
+      const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
+      
       console.log('Connessione chiusa per:', lastDisconnect.error, ', riconnetto:', shouldReconnect);
-      if (shouldReconnect) {
-        startBot();
+      
+      // Se è un conflitto, aspetta più tempo prima di riconnettersi
+      if (statusCode === 440) { // Conflict error
+        console.log('⚠️ Conflitto rilevato - aspetto 10 secondi prima di riconnettere...');
+        setTimeout(() => {
+          if (shouldReconnect) {
+            startBot();
+          }
+        }, 10000);
+      } else if (shouldReconnect) {
+        // Per altri errori, aspetta 3 secondi
+        setTimeout(() => {
+          startBot();
+        }, 3000);
       }
     } else if (connection === 'open') {
-      console.log('Bot WhatsApp connesso!');
+      console.log('✅ Bot WhatsApp connesso con successo!');
     }
   });
 

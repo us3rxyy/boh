@@ -610,6 +610,11 @@ app.get('/', (req, res) => {
 
 // ROUTE: /login → reindirizza a Spotify per fare il login
 app.get('/login', (req, res) => {
+  console.log('🔍 LOGIN DEBUG:');
+  console.log('CLIENT_ID:', CLIENT_ID ? 'SET' : 'NOT SET');
+  console.log('BASE_URL:', BASE_URL);
+  console.log('REDIRECT_URI:', REDIRECT_URI);
+  
   const scope = 'user-read-currently-playing user-read-playback-state';
   const query = qs.stringify({
     response_type: 'code',
@@ -617,18 +622,40 @@ app.get('/login', (req, res) => {
     scope: scope,
     redirect_uri: REDIRECT_URI
   });
-  res.redirect('https://accounts.spotify.com/authorize?' + query);
+  
+  const spotifyUrl = 'https://accounts.spotify.com/authorize?' + query;
+  console.log('🔗 Spotify URL completo:', spotifyUrl);
+  
+  res.redirect(spotifyUrl);
 });
 
 // ROUTE: /callback → riceve il codice da Spotify, ottiene token e salva
 app.get('/callback', async (req, res) => {
+  console.log('📥 CALLBACK DEBUG:');
+  console.log('Query params completi:', req.query);
+  console.log('Code ricevuto:', req.query.code ? 'YES' : 'NO');
+  console.log('Error ricevuto:', req.query.error || 'NO');
+  
   const code = req.query.code;
+
+  if (req.query.error) {
+    console.log('❌ Errore da Spotify:', req.query.error);
+    return res.send(`❌ Errore Spotify: ${req.query.error} - ${req.query.error_description || 'Nessuna descrizione'}`);
+  }
+
+  if (!code) {
+    return res.send('❌ Nessun codice ricevuto da Spotify');
+  }
 
   const body = qs.stringify({
     grant_type: 'authorization_code',
     code: code,
     redirect_uri: REDIRECT_URI
   });
+
+  console.log('🔧 Token request body:', body);
+  console.log('🔧 CLIENT_ID per auth:', CLIENT_ID ? 'SET' : 'NOT SET');
+  console.log('🔧 CLIENT_SECRET per auth:', CLIENT_SECRET ? 'SET' : 'NOT SET');
 
   const response = await fetch('https://accounts.spotify.com/api/token', {
     method: 'POST',
@@ -640,9 +667,11 @@ app.get('/callback', async (req, res) => {
   });
 
   const data = await response.json();
+  console.log('🎵 Spotify response:', data);
 
   if (data.error) {
-    return res.send('Errore nel login Spotify: ' + JSON.stringify(data));
+    console.log('❌ Errore token:', data);
+    return res.send('❌ Errore nel login Spotify: ' + JSON.stringify(data, null, 2));
   }
 
   const tokens = {

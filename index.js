@@ -51,11 +51,9 @@ const HEY_RESPONSES = [
   "microbo",
   "sei un ameba unicellulare",
 ];
-
 const SCHIZZO_RESPONSES = [
   "MADONNA BEATA MA CHE CAZZO VUOI? DIMMI QUAL è IL PROBLEMA. COS è CHE FACCIO? PIANGO? NON POSSO? è TRE ANNI, TREEE ANNI CHE CI STAVO ASSIEME E MI HA LASCIATO PER UNA SPORCA PUTTANA. OKAY? CHE CAZZO VUOI"
 ];
-
 const DIABLA_RESPONSES = [
   "io gucci tu ciucci",
   "io Rio de Janeiro tu Rio Mare",
@@ -109,22 +107,17 @@ const DIABLA_RESPONSES = [
   "io in carriera tu in corriera",
   "io Ibiza tu Obeza"
 ];
-
 const NO_RESPONSES = [
 "Sofia non può uscire o semplicemente non ha voglia e siccome non ha nemmeno voglia di dirvelo ha incaricato me di farlo. Arrivederci e buon proseguimento!"
 ];
-
 const RYAN_RESPONSES = [
   "Ryan molto belli i tuoi capelli blu, sembri proprio una lesbica comunista"
 ];
 
-
-// Funzione per prendere una risposta casuale da una lista
 function getRandomResponse(list) {
   return list[Math.floor(Math.random() * list.length)];
 }
 
-// Funzione per ottenere la canzone corrente da Spotify
 async function getCurrentSpotifyTrack(accessToken) {
   try {
     const response = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
@@ -133,22 +126,18 @@ async function getCurrentSpotifyTrack(accessToken) {
       }
     });
 
-    // Nessuna canzone in riproduzione
     if (response.status === 204) {
       return { error: 'Nessuna canzone in riproduzione' };
     }
 
-    // Token scaduto o non valido
     if (response.status === 401) {
       return { error: 'Token scaduto', needsReauth: true };
     }
 
-    // Account Premium richiesto
     if (response.status === 403) {
       return { error: 'Spotify Premium richiesto per questa funzione' };
     }
 
-    // Rate limit
     if (response.status === 429) {
       return { error: 'Troppe richieste, riprova tra qualche minuto' };
     }
@@ -179,12 +168,10 @@ async function getCurrentSpotifyTrack(accessToken) {
   }
 }
 
-// Funzione per gestire il comando !cur
 async function handleCurrentSong(sock, chatId) {
   let token = await getValidSpotifyToken();
 
   if (!token) {
-    // Nessun token valido, invia il link per connettersi
     const replyMessage = `🎵 *Connetti Spotify per usare !cur*
 
 🔗 ${BASE_URL}
@@ -195,10 +182,8 @@ Vai al link, clicca su "Connetti Spotify" e autorizza l'accesso!`;
     return;
   }
 
-  // Token valido, ottieni la canzone corrente
   let currentTrack = await getCurrentSpotifyTrack(token);
 
-  // Se il token è scaduto, prova a refresharlo automaticamente
   if (currentTrack.needsReauth) {
     console.log('🔄 Token scaduto, tentativo di refresh automatico...');
     token = await getValidSpotifyToken(); // Forza il refresh
@@ -208,18 +193,16 @@ Vai al link, clicca su "Connetti Spotify" e autorizza l'accesso!`;
   }
 
   if (currentTrack.error) {
-    // Se c'è ancora un errore dopo il tentativo di refresh
     const replyMessage = currentTrack.needsReauth 
       ? `❌ ${currentTrack.error}
 
 🔗 Riconnetti Spotify: ${BASE_URL}`
       : `❌ ${currentTrack.error}`;
-    
+
     await sock.sendMessage(chatId, { text: replyMessage });
     return;
   }
 
-  // Calcola progresso se disponibile
   let progressText = '';
   if (currentTrack.progress_ms && currentTrack.duration_ms) {
     const progress = Math.floor((currentTrack.progress_ms / currentTrack.duration_ms) * 100);
@@ -227,7 +210,6 @@ Vai al link, clicca su "Connetti Spotify" e autorizza l'accesso!`;
     progressText = `\n⏱️ ${progressBar} ${progress}%`;
   }
 
-  // Formatta e invia la risposta con la canzone corrente
   const statusIcon = currentTrack.is_playing ? '▶️' : '⏸️';
   const replyMessage = `🎵 *Stai ascoltando:*
 

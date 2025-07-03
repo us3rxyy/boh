@@ -105,6 +105,15 @@ const DIABLA_RESPONSES = [
   "io Ibiza tu Obeza"
 ];
 
+const NO_RESPONSES = [
+"Sofia non può uscire o semplicemente non ha voglia e siccome non ha nemmeno voglia di dirvelo ha incaricato me di farlo. Arrivederci e buon proseguimento!"
+];
+
+const RYAN_RESPONSES = [
+  "Ryan molto belli i tuoi capelli blu, sembri proprio una lesbica comunista"
+];
+
+
 // Funzione per prendere una risposta casuale da una lista
 function getRandomResponse(list) {
   return list[Math.floor(Math.random() * list.length)];
@@ -152,6 +161,10 @@ async function startBot() {
       await sock.sendMessage(chatId, { text: getRandomResponse(SCHIZZO_RESPONSES) });
     } else if (text.toLowerCase() === '!diabla') {
       await sock.sendMessage(chatId, { text: getRandomResponse(DIABLA_RESPONSES) });
+      } else if (text.toLowerCase() === '!no') {
+        await sock.sendMessage(chatId, { text: getRandomResponse(NO_RESPONSES) });
+      } else if (text.toLowerCase() === '!ryan') {
+        await sock.sendMessage(chatId, { text: getRandomResponse(RYAN_RESPONSES) });
     }
   });
 }

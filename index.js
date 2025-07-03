@@ -317,16 +317,19 @@ const CLIENT_SECRET = process.env.CLIENT_SECRET;
 const BASE_URL = 'https://boh-zl4s.onrender.com';
 const REDIRECT_URI = `https://boh-zl4s.onrender.com/callback`;
 
-// Crea la cartella tokens se non esiste
-console.log('🚀 Controllo cartella tokens all\'avvio...');
-if (!fs.existsSync('tokens')) {
-  console.log('📁 Cartella tokens non esiste, la creo...');
-  fs.mkdirSync('tokens');
-  console.log('📁 Cartella tokens creata');
+// Verifica se esiste il file dei token all'avvio
+console.log('🚀 Controllo file token all\'avvio...');
+const tokenFile = 'spotify_tokens.json';
+if (fs.existsSync(tokenFile)) {
+  console.log('📁 File token trovato all\'avvio:', tokenFile);
+  try {
+    const tokenData = JSON.parse(fs.readFileSync(tokenFile, 'utf8'));
+    console.log('📁 Token valido trovato per utente');
+  } catch (error) {
+    console.log('❌ File token corrotto, sarà necessario riconnettersi');
+  }
 } else {
-  console.log('📁 Cartella tokens già esiste');
-  const files = fs.readdirSync('tokens');
-  console.log('📁 Files trovati all\'avvio:', files);
+  console.log('📁 Nessun file token all\'avvio');
 }
 
 // Funzione per refreshare il token Spotify
@@ -361,7 +364,7 @@ async function refreshSpotifyToken(refreshToken) {
       timestamp: Date.now()
     };
 
-    const fileName = `tokens/spotify_${Date.now()}.json`;
+    const fileName = `spotify_tokens.json`;
     fs.writeFileSync(fileName, JSON.stringify(newTokens, null, 2));
 
     console.log('✅ Token Spotify refreshato con successo!');
@@ -377,23 +380,16 @@ async function refreshSpotifyToken(refreshToken) {
 async function getValidSpotifyToken() {
   console.log('🔍 Controllo token Spotify...');
 
-  if (!fs.existsSync('tokens')) {
-    console.log('📁 Cartella tokens non esiste');
+  const tokenFile = 'spotify_tokens.json';
+  
+  if (!fs.existsSync(tokenFile)) {
+    console.log('📁 File token non esiste:', tokenFile);
     return null;
   }
 
-  const files = fs.readdirSync('tokens');
-  console.log('📁 Files nella cartella tokens:', files);
-  console.log('📁 Numero di files trovati:', files.length);
-
-  if (files.length === 0) {
-    console.log('📁 Nessun file token trovato');
-    return null;
-  }
-
-  // Prendi il token più recente
-  const lastFile = files.sort().reverse()[0];
-  const tokenData = JSON.parse(fs.readFileSync('tokens/' + lastFile, 'utf8'));
+  console.log('📁 File token trovato:', tokenFile);
+  const tokenData = JSON.parse(fs.readFileSync(tokenFile, 'utf8'));
+  console.log('📁 Token letto con successo');
 
   // Verifica se il token è ancora valido (con margine di 5 minuti)
   const now = Date.now();
@@ -727,17 +723,14 @@ app.get('/callback', async (req, res) => {
     timestamp: Date.now()
   };
 
-  // Salva i token con un file tipo tokens/spotify_123456.json
-  const fileName = `tokens/spotify_${Date.now()}.json`;
+  // Salva i token in un file fisso
+  const fileName = `spotify_tokens.json`;
   fs.writeFileSync(fileName, JSON.stringify(tokens, null, 2));
 
   console.log('💾 Token salvato in:', fileName);
   console.log('💾 Contenuto token:', JSON.stringify(tokens, null, 2));
   
   // Verifica immediata che il file sia stato salvato
-  const savedFiles = fs.readdirSync('tokens');
-  console.log('💾 Files nella cartella tokens dopo salvataggio:', savedFiles);
-  
   if (fs.existsSync(fileName)) {
     console.log('✅ File token confermato esistente');
     const fileContent = fs.readFileSync(fileName, 'utf8');
@@ -751,10 +744,9 @@ app.get('/callback', async (req, res) => {
 
 // ROUTE: /test → mostra i token salvati (per debug)
 app.get('/test', (req, res) => {
-  const files = fs.readdirSync('tokens');
-  if (files.length === 0) return res.send('Nessun token salvato ancora.');
-  const lastFile = files.sort().reverse()[0];
-  const tokenData = fs.readFileSync('tokens/' + lastFile);
+  const tokenFile = 'spotify_tokens.json';
+  if (!fs.existsSync(tokenFile)) return res.send('Nessun token salvato ancora.');
+  const tokenData = fs.readFileSync(tokenFile);
   res.setHeader('Content-Type', 'application/json');
   res.send(tokenData);
 });
@@ -762,11 +754,13 @@ app.get('/test', (req, res) => {
 // ROUTE: /clear → cancella tutti i token salvati
 app.get('/clear', (req, res) => {
   try {
-    const files = fs.readdirSync('tokens');
-    files.forEach(file => {
-      fs.unlinkSync(`tokens/${file}`);
-    });
-    res.send('✅ Tutti i token sono stati cancellati. Dovrai riconnetterti a Spotify.');
+    const tokenFile = 'spotify_tokens.json';
+    if (fs.existsSync(tokenFile)) {
+      fs.unlinkSync(tokenFile);
+      res.send('✅ Token cancellato. Dovrai riconnetterti a Spotify.');
+    } else {
+      res.send('✅ Nessun token da cancellare.');
+    }
   } catch (error) {
     res.send('❌ Errore nella cancellazione dei token: ' + error.message);
   }

@@ -258,10 +258,10 @@ startBot();
 // Configurazione Express per Spotify
 const app = express();
 
-// Prendi i dati dal .env
+// Prendi i dati dai secrets di Replit
 const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
-const REDIRECT_URI = process.env.REDIRECT_URI;
+const REDIRECT_URI = process.env.REDIRECT_URI || 'https://boh-jh66yi7jk-us3rxys-projects.vercel.app/callback';
 
 // Crea la cartella tokens se non esiste
 if (!fs.existsSync('tokens')) {

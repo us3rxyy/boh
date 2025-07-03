@@ -1,4 +1,5 @@
-const { Client, LocalAuth } = require('whatsapp-web.js');
+
+const { default: makeWASocket, DisconnectReason, useMultiFileAuthState } = require('@whiskeysockets/baileys');
 const qrcode = require('qrcode-terminal');
 
 // Liste di risposte sarcastiche per ogni comando
@@ -109,46 +110,50 @@ function getRandomResponse(list) {
   return list[Math.floor(Math.random() * list.length)];
 }
 
-// Setup del client WhatsApp con autenticazione locale
-const client = new Client({
-  authStrategy: new LocalAuth(),
-  puppeteer: {
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-accelerated-2d-canvas',
-      '--no-first-run',
-      '--no-zygote',
-      '--single-process',
-      '--disable-gpu'
-    ]
-  }
-});
+async function startBot() {
+  const { state, saveCreds } = await useMultiFileAuthState('auth_info_baileys');
+  
+  const sock = makeWASocket({
+    auth: state,
+    printQRInTerminal: false
+  });
 
-// Quando serve il QR code per l'accesso
-client.on('qr', (qr) => {
-  qrcode.generate(qr, { small: true });
-  console.log('Scansiona questo QR code con WhatsApp per collegare il bot.');
-});
+  sock.ev.on('connection.update', (update) => {
+    const { connection, lastDisconnect, qr } = update;
+    
+    if (qr) {
+      console.log('Scansiona questo QR code con WhatsApp:');
+      qrcode.generate(qr, { small: true });
+    }
+    
+    if (connection === 'close') {
+      const shouldReconnect = (lastDisconnect.error)?.output?.statusCode !== DisconnectReason.loggedOut;
+      console.log('Connessione chiusa per:', lastDisconnect.error, ', riconnetto:', shouldReconnect);
+      if (shouldReconnect) {
+        startBot();
+      }
+    } else if (connection === 'open') {
+      console.log('Bot WhatsApp connesso!');
+    }
+  });
 
-// Quando il bot è pronto
-client.on('ready', () => {
-  console.log('Bot WhatsApp pronto!');
-});
+  sock.ev.on('creds.update', saveCreds);
 
-// Gestione messaggi ricevuti
-client.on('message', (message) => {
-  const text = message.body.toLowerCase();
+  sock.ev.on('messages.upsert', async (m) => {
+    const message = m.messages[0];
+    if (!message.message || message.key.fromMe) return;
 
-  if(text === '!hey') {
-    message.reply(getRandomResponse(HEY_RESPONSES));
-  } else if(text === '!schizzo') {
-    message.reply(getRandomResponse(SCHIZZO_RESPONSES));
-  } else if(text === '!diabla') {
-    message.reply(getRandomResponse(DIABLA_RESPONSES));
-  }
-});
+    const text = message.message.conversation || message.message.extendedTextMessage?.text || '';
+    const chatId = message.key.remoteJid;
 
-// Avvio del client
-client.initialize();
+    if (text.toLowerCase() === '!hey') {
+      await sock.sendMessage(chatId, { text: getRandomResponse(HEY_RESPONSES) });
+    } else if (text.toLowerCase() === '!schizzo') {
+      await sock.sendMessage(chatId, { text: getRandomResponse(SCHIZZO_RESPONSES) });
+    } else if (text.toLowerCase() === '!diabla') {
+      await sock.sendMessage(chatId, { text: getRandomResponse(DIABLA_RESPONSES) });
+    }
+  });
+}
+
+startBot();

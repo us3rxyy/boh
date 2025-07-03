@@ -647,5 +647,5 @@ app.get('/test', (req, res) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Server Express attivo su porta ${PORT}`);
-  console.log('URL del bot: https://workspace.nafisofia110.repl.co');
+  console.log('URL del bot: https://osvaldobot.com');
 });

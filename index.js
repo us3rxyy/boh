@@ -168,7 +168,7 @@ async function handleCurrentSong(sock, chatId) {
     // Nessun token valido, invia il link per connettersi
     const replyMessage = `❌ Non hai ancora connesso il tuo account per poter usare "!cur". Fallo dal link sottostante:
 
-🎵 https://your-repl-name.your-username.repl.co
+🎵 ${process.env.REPL_URL || 'https://' + process.env.REPL_SLUG + '.' + process.env.REPL_OWNER + '.repl.co'}
 
 Clicca su "Connetti Spotify" per autorizzare l'accesso e poi riprova il comando!`;
     
@@ -667,5 +667,5 @@ app.get('/test', (req, res) => {
 // Avvia il server Express
 app.listen(5000, '0.0.0.0', () => {
   console.log('✅ Server Express attivo su porta 5000');
-  console.log('URL del bot: https://your-repl-name.your-username.repl.co');
+  console.log('URL del bot:', process.env.REPL_URL || 'https://' + process.env.REPL_SLUG + '.' + process.env.REPL_OWNER + '.repl.co');
 });

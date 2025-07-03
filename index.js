@@ -381,7 +381,7 @@ async function getValidSpotifyToken() {
   console.log('🔍 Controllo token Spotify...');
 
   const tokenFile = 'spotify_tokens.json';
-  
+
   if (!fs.existsSync(tokenFile)) {
     console.log('📁 File token non esiste:', tokenFile);
     return null;
@@ -725,18 +725,45 @@ app.get('/callback', async (req, res) => {
 
   // Salva i token in un file fisso
   const fileName = `spotify_tokens.json`;
-  fs.writeFileSync(fileName, JSON.stringify(tokens, null, 2));
-
-  console.log('💾 Token salvato in:', fileName);
-  console.log('💾 Contenuto token:', JSON.stringify(tokens, null, 2));
   
-  // Verifica immediata che il file sia stato salvato
+  console.log('💾 Contenuto token:', JSON.stringify(tokens, null, 2));
+
+  // Debug prima del salvataggio
+  console.log('💾 PRIMA del salvataggio:');
+  const filesBefore = fs.readdirSync('.');
+  console.log('💾 File prima del salvataggio:', filesBefore);
+  console.log('💾 Directory corrente:', process.cwd());
+  console.log('💾 Nome file da salvare:', fileName);
+
+  // Tentativo di salvataggio con gestione errori
+  try {
+    fs.writeFileSync(fileName, JSON.stringify(tokens, null, 2));
+    console.log('💾 writeFileSync completato senza errori');
+  } catch (writeError) {
+    console.log('❌ ERRORE durante writeFileSync:', writeError);
+    return res.send('❌ Errore nel salvataggio del file: ' + writeError.message);
+  }
+
+  // Debug dopo il salvataggio
+  console.log('💾 DOPO il salvataggio:');
+  const filesAfter = fs.readdirSync('.');
+  console.log('💾 File dopo il salvataggio:', filesAfter);
+
   if (fs.existsSync(fileName)) {
     console.log('✅ File token confermato esistente');
     const fileContent = fs.readFileSync(fileName, 'utf8');
     console.log('✅ Contenuto file letto:', fileContent);
+
+    // Verifica che il contenuto sia valido JSON
+    try {
+      const parsedContent = JSON.parse(fileContent);
+      console.log('✅ File JSON valido, chiavi:', Object.keys(parsedContent));
+    } catch (parseError) {
+      console.log('❌ File JSON non valido:', parseError);
+    }
   } else {
     console.log('❌ ERRORE: File token non trovato dopo salvataggio!');
+    console.log('❌ Path assoluto tentato:', require('path').resolve(fileName));
   }
 
   res.send('✅ Accesso effettuato! I token sono stati salvati.');

@@ -195,7 +195,7 @@ app.get('/', (req, res) => {
     <html>
       <head><title>WhatsApp Bot Status</title></head>
       <body>
-        <h1>WhatsApp Bot è attivo!</h1>
+        <h1>Osvaldo Bot è attivo!</h1>
         <p>Il bot sta funzionando e risponde ai comandi:</p>
         <ul>
           <li><strong>!hey</strong> - il 99% sono insulti</li>

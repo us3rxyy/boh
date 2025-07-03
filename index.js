@@ -124,6 +124,79 @@ function getRandomResponse(list) {
   return list[Math.floor(Math.random() * list.length)];
 }
 
+// Funzione per ottenere la canzone corrente da Spotify
+async function getCurrentSpotifyTrack(accessToken) {
+  try {
+    const response = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      }
+    });
+    
+    if (response.status === 204) {
+      return { error: 'Nessuna canzone in riproduzione' };
+    }
+    
+    if (!response.ok) {
+      return { error: 'Errore nell\'ottenere la canzone corrente' };
+    }
+    
+    const data = await response.json();
+    
+    if (!data || !data.item) {
+      return { error: 'Nessuna canzone in riproduzione' };
+    }
+    
+    return {
+      name: data.item.name,
+      artists: data.item.artists.map(artist => artist.name).join(', '),
+      album: data.item.album.name,
+      is_playing: data.is_playing,
+      external_url: data.item.external_urls.spotify
+    };
+  } catch (error) {
+    console.error('Errore Spotify API:', error);
+    return { error: 'Errore nel contattare Spotify' };
+  }
+}
+
+// Funzione per gestire il comando !cur
+async function handleCurrentSong(sock, chatId) {
+  const token = await getValidSpotifyToken();
+  
+  if (!token) {
+    // Nessun token valido, invia il link per connettersi
+    const replyMessage = `❌ Non hai ancora connesso il tuo account per poter usare "!cur". Fallo dal link sottostante:
+
+🎵 https://your-repl-name.your-username.repl.co
+
+Clicca su "Connetti Spotify" per autorizzare l'accesso e poi riprova il comando!`;
+    
+    await sock.sendMessage(chatId, { text: replyMessage });
+    return;
+  }
+  
+  // Token valido, ottieni la canzone corrente
+  const currentTrack = await getCurrentSpotifyTrack(token);
+  
+  if (currentTrack.error) {
+    await sock.sendMessage(chatId, { text: `❌ ${currentTrack.error}` });
+    return;
+  }
+  
+  // Formatta e invia la risposta con la canzone corrente
+  const statusIcon = currentTrack.is_playing ? '▶️' : '⏸️';
+  const replyMessage = `🎵 *Stai ascoltando:*
+
+${statusIcon} **${currentTrack.name}**
+🎤 Artista: ${currentTrack.artists}
+💿 Album: ${currentTrack.album}
+
+🔗 ${currentTrack.external_url}`;
+  
+  await sock.sendMessage(chatId, { text: replyMessage });
+}
+
 async function startBot() {
   const { state, saveCreds } = await useMultiFileAuthState('auth_info_baileys');
 
@@ -170,6 +243,8 @@ async function startBot() {
         await sock.sendMessage(chatId, { text: getRandomResponse(NO_RESPONSES) });
       } else if (text.toLowerCase() === '!ryan') {
         await sock.sendMessage(chatId, { text: getRandomResponse(RYAN_RESPONSES) });
+      } else if (text.toLowerCase() === '!cur') {
+        await handleCurrentSong(sock, chatId);
     }
   });
 }
@@ -491,7 +566,9 @@ app.get('/', (req, res) => {
                   <div class="command">!diabla</div>
                   <div class="description">io divina tu divana</div>
                 </li>
-
+                <li class="command-item">
+                  <div class="command">!cur</div>
+                  <div class="description">mostra la canzone corrente su Spotify</div>
                 </li>
               </ul>
             </div>

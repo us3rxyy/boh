@@ -9,6 +9,9 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "dependencies": {
     "@types/node": "^22.13.11",
     "@whiskeysockets/baileys": "^6.7.18",

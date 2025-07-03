@@ -706,4 +706,5 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Server Express attivo su porta ${PORT}`);
   console.log(`URL del bot: ${BASE_URL}`);
   console.log(`Redirect URI: ${REDIRECT_URI}`);
+  console.log(`🌐 Server accessibile dall'esterno su: https://${BASE_URL.split('//')[1]}`);
 });

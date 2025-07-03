@@ -192,22 +192,263 @@ if (!fs.existsSync('tokens')) {
 // ROUTE principale: mostra status del bot
 app.get('/', (req, res) => {
   res.send(`
-    <html>
-      <head><title>WhatsApp Bot Status</title></head>
+    <!DOCTYPE html>
+    <html lang="it">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Osvaldo Bot Dashboard</title>
+        <style>
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          
+          body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+          }
+          
+          .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+          }
+          
+          .header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeInDown 1s ease-out;
+          }
+          
+          .logo {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+          }
+          
+          .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+          }
+          
+          .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+          }
+          
+          .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+            animation: fadeInUp 1s ease-out;
+          }
+          
+          .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 45px rgba(0,0,0,0.2);
+          }
+          
+          .card-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+          }
+          
+          .emoji {
+            font-size: 2rem;
+          }
+          
+          .command-list {
+            list-style: none;
+          }
+          
+          .command-item {
+            background: rgba(255,255,255,0.1);
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #1db954;
+            transition: all 0.3s ease;
+          }
+          
+          .command-item:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateX(5px);
+          }
+          
+          .command {
+            font-weight: bold;
+            color: #1db954;
+            font-family: 'Courier New', monospace;
+          }
+          
+          .description {
+            margin-top: 5px;
+            opacity: 0.9;
+            font-size: 0.9rem;
+          }
+          
+          .spotify-section {
+            background: linear-gradient(135deg, #1db954 0%, #1ed760 100%);
+            color: white;
+          }
+          
+          .spotify-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+          }
+          
+          .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 25px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255,255,255,0.3);
+          }
+          
+          .btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+          }
+          
+          .btn-primary {
+            background: rgba(255,255,255,0.9);
+            color: #1db954;
+          }
+          
+          .btn-primary:hover {
+            background: white;
+            color: #1db954;
+          }
+          
+          .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background: #1db954;
+            border-radius: 50%;
+            margin-right: 10px;
+            animation: pulse 2s infinite;
+          }
+          
+          @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(29, 185, 84, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(29, 185, 84, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(29, 185, 84, 0); }
+          }
+          
+          @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          
+          @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          
+          .footer {
+            text-align: center;
+            margin-top: 40px;
+            opacity: 0.7;
+            font-size: 0.9rem;
+          }
+          
+          @media (max-width: 768px) {
+            .container { padding: 15px; }
+            .logo { font-size: 2rem; }
+            .cards-container { grid-template-columns: 1fr; gap: 20px; }
+            .spotify-buttons { flex-direction: column; }
+          }
+        </style>
+      </head>
       <body>
-        <h1>Osvaldo Bot è attivo!</h1>
-        <p>Il bot sta funzionando e risponde ai comandi:</p>
-        <ul>
-          <li><strong>!hey</strong> - il 99% sono insulti</li>
-          <li><strong>!schizzo</strong> - la risposta della tipa al tipo di schizzo male</li>
-          <li><strong>!diabla</strong> - Frasi da diabla</li>
-          <li><strong>!no</strong> - Risposta di Sofia</li>
-          <li><strong>!ryan</strong> - Messaggio per Ryan</li>
-        </ul>
-        <hr>
-        <h2>Spotify Integration</h2>
-        <p><a href="/login">🎵 Connetti Spotify</a></p>
-        <p><a href="/test">🔍 Verifica Token Spotify</a></p>
+        <div class="container">
+          <div class="header">
+            <div class="logo">🤖 OSVALDO BOT</div>
+            <div class="subtitle">
+              <span class="status-indicator"></span>
+              Dashboard di Controllo Attiva
+            </div>
+          </div>
+          
+          <div class="cards-container">
+            <div class="card">
+              <div class="card-title">
+                <span class="emoji">💬</span>
+                Comandi WhatsApp
+              </div>
+              <ul class="command-list">
+                <li class="command-item">
+                  <div class="command">!hey</div>
+                  <div class="description">Il 99% sono insulti creativi</div>
+                </li>
+                <li class="command-item">
+                  <div class="command">!schizzo</div>
+                  <div class="description">La risposta epica della tipa</div>
+                </li>
+                <li class="command-item">
+                  <div class="command">!diabla</div>
+                  <div class="description">Frasi da vera diabla</div>
+                </li>
+                <li class="command-item">
+                  <div class="command">!no</div>
+                  <div class="description">La risposta diplomatica di Sofia</div>
+                </li>
+                <li class="command-item">
+                  <div class="command">!ryan</div>
+                  <div class="description">Messaggio speciale per Ryan</div>
+                </li>
+              </ul>
+            </div>
+            
+            <div class="card spotify-section">
+              <div class="card-title">
+                <span class="emoji">🎵</span>
+                Integrazione Spotify
+              </div>
+              <p style="margin-bottom: 25px; opacity: 0.9;">
+                Connetti il tuo account Spotify per abilitare funzioni musicali avanzate nel bot.
+              </p>
+              <div class="spotify-buttons">
+                <a href="/login" class="btn btn-primary">
+                  <span>🔗</span>
+                  Connetti Spotify
+                </a>
+                <a href="/test" class="btn">
+                  <span>🔍</span>
+                  Verifica Token
+                </a>
+              </div>
+            </div>
+          </div>
+          
+          <div class="footer">
+            <p>🚀 Bot sviluppato su Replit | 💝 Made with love and sarcasm</p>
+          </div>
+        </div>
       </body>
     </html>
   `);

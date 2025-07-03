@@ -1,6 +1,6 @@
-
 const { default: makeWASocket, DisconnectReason, useMultiFileAuthState } = require('@whiskeysockets/baileys');
 const qrcode = require('qrcode-terminal');
+const http = require('http'); // Importa il modulo http
 
 // Liste di risposte sarcastiche per ogni comando
 const HEY_RESPONSES = [
@@ -112,7 +112,7 @@ function getRandomResponse(list) {
 
 async function startBot() {
   const { state, saveCreds } = await useMultiFileAuthState('auth_info_baileys');
-  
+
   const sock = makeWASocket({
     auth: state,
     printQRInTerminal: false
@@ -120,12 +120,12 @@ async function startBot() {
 
   sock.ev.on('connection.update', (update) => {
     const { connection, lastDisconnect, qr } = update;
-    
+
     if (qr) {
       console.log('Scansiona questo QR code con WhatsApp:');
       qrcode.generate(qr, { small: true });
     }
-    
+
     if (connection === 'close') {
       const shouldReconnect = (lastDisconnect.error)?.output?.statusCode !== DisconnectReason.loggedOut;
       console.log('Connessione chiusa per:', lastDisconnect.error, ', riconnetto:', shouldReconnect);
@@ -157,3 +157,27 @@ async function startBot() {
 }
 
 startBot();
+
+// Server HTTP per mostrare lo status del bot
+const server = http.createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/html' });
+  res.end(`
+    <html>
+      <head><title>WhatsApp Bot Status</title></head>
+      <body>
+        <h1>WhatsApp Bot è attivo!</h1>
+        <p>Il bot sta funzionando e risponde ai comandi:</p>
+        <ul>
+          <li><strong>!hey</strong> - Risposta sarcastica</li>
+          <li><strong>!schizzo</strong> - Messaggio dello schizzo</li>
+          <li><strong>!diabla</strong> - Frasi "io... tu..."</li>
+        </ul>
+      </body>
+    </html>
+  `);
+});
+
+server.listen(5000, '0.0.0.0', () => {
+  console.log('Server HTTP attivo su porta 5000');
+  console.log('URL del bot: https://your-repl-name.your-username.repl.co');
+});

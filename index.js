@@ -283,7 +283,7 @@ const app = express();
 const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
 const BASE_URL = 'https://boh-zl4s.onrender.com';
-const REDIRECT_URI = `${BASE_URL}/callback`;
+const REDIRECT_URI = `https://boh-zl4s.onrender.com/callback`;
 
 // Crea la cartella tokens se non esiste
 if (!fs.existsSync('tokens')) {

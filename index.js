@@ -168,7 +168,7 @@ async function handleCurrentSong(sock, chatId) {
     // Nessun token valido, invia il link per connettersi
     const replyMessage = `🎵 *Connetti Spotify per usare !cur*
 
-🔗 https://boh-jh66yi7jk-us3rxys-projects.vercel.app
+🔗 https://boh-jh66yi7jk-us3rxys-projects.replit.app
 
 Vai al link, clicca su "Connetti Spotify" e autorizza l'accesso!`;
 
@@ -183,7 +183,7 @@ Vai al link, clicca su "Connetti Spotify" e autorizza l'accesso!`;
     // Se c'è un errore, mostra comunque il link per riconnettere
     const replyMessage = `❌ ${currentTrack.error}
 
-🔗 Riconnetti Spotify: https://boh-jh66yi7jk-us3rxys-projects.vercel.app`;
+🔗 Riconnetti Spotify: https://boh-jh66yi7jk-us3rxys-projects.replit.app`;
     await sock.sendMessage(chatId, { text: replyMessage });
     return;
   }
@@ -261,7 +261,7 @@ const app = express();
 // Prendi i dati dai secrets di Replit
 const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
-const REDIRECT_URI = process.env.REDIRECT_URI || 'https://boh-jh66yi7jk-us3rxys-projects.vercel.app/callback';
+const REDIRECT_URI = process.env.REDIRECT_URI || 'https://boh-jh66yi7jk-us3rxys-projects.replit.app/callback';
 
 // Crea la cartella tokens se non esiste
 if (!fs.existsSync('tokens')) {
@@ -647,5 +647,5 @@ app.get('/test', (req, res) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Server Express attivo su porta ${PORT}`);
-  console.log('URL del bot: https://boh-jh66yi7jk-us3rxys-projects.vercel.app');
+  console.log('URL del bot: https://boh-jh66yi7jk-us3rxys-projects.replit.app');
 });

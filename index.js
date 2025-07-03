@@ -132,21 +132,21 @@ async function getCurrentSpotifyTrack(accessToken) {
         'Authorization': `Bearer ${accessToken}`
       }
     });
-    
+
     if (response.status === 204) {
       return { error: 'Nessuna canzone in riproduzione' };
     }
-    
+
     if (!response.ok) {
       return { error: 'Errore nell\'ottenere la canzone corrente' };
     }
-    
+
     const data = await response.json();
-    
+
     if (!data || !data.item) {
       return { error: 'Nessuna canzone in riproduzione' };
     }
-    
+
     return {
       name: data.item.name,
       artists: data.item.artists.map(artist => artist.name).join(', '),
@@ -163,7 +163,7 @@ async function getCurrentSpotifyTrack(accessToken) {
 // Funzione per gestire il comando !cur
 async function handleCurrentSong(sock, chatId) {
   const token = await getValidSpotifyToken();
-  
+
   if (!token) {
     // Nessun token valido, invia il link per connettersi
     const replyMessage = `❌ Non hai ancora connesso il tuo account per poter usare "!cur". Fallo dal link sottostante:
@@ -171,19 +171,19 @@ async function handleCurrentSong(sock, chatId) {
 🎵 ${process.env.REPL_URL || 'https://' + process.env.REPL_SLUG + '.' + process.env.REPL_OWNER + '.repl.co'}
 
 Clicca su "Connetti Spotify" per autorizzare l'accesso e poi riprova il comando!`;
-    
+
     await sock.sendMessage(chatId, { text: replyMessage });
     return;
   }
-  
+
   // Token valido, ottieni la canzone corrente
   const currentTrack = await getCurrentSpotifyTrack(token);
-  
+
   if (currentTrack.error) {
     await sock.sendMessage(chatId, { text: `❌ ${currentTrack.error}` });
     return;
   }
-  
+
   // Formatta e invia la risposta con la canzone corrente
   const statusIcon = currentTrack.is_playing ? '▶️' : '⏸️';
   const replyMessage = `🎵 *Stai ascoltando:*
@@ -193,7 +193,7 @@ ${statusIcon} **${currentTrack.name}**
 💿 Album: ${currentTrack.album}
 
 🔗 ${currentTrack.external_url}`;
-  
+
   await sock.sendMessage(chatId, { text: replyMessage });
 }
 
@@ -668,5 +668,5 @@ app.get('/test', (req, res) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Server Express attivo su porta ${PORT}`);
-  console.log('URL del bot:', process.env.REPL_URL || 'https://' + process.env.REPL_SLUG + '.' + process.env.REPL_OWNER + '.repl.co');
-})
+  console.log('URL del bot: https://workspace.nafisofia110.repl.co');
+});

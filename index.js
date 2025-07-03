@@ -74,7 +74,6 @@ const DIABLA_RESPONSES = [
   "io prada tu nada",
   "io fotogenica tu carta igienica", 
   "io sofisticata tu soffocata",
-  "io sex appeal tu silk epil",
   "io in costume tu in questura",
   "io favola tu provola",
   "io hype tu skype",
@@ -260,9 +259,9 @@ async function startBot() {
     if (connection === 'close') {
       const statusCode = (lastDisconnect.error)?.output?.statusCode;
       const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
-      
+
       console.log('Connessione chiusa per:', lastDisconnect.error, ', riconnetto:', shouldReconnect);
-      
+
       // Se è un conflitto, aspetta più tempo prima di riconnettersi
       if (statusCode === 440) { // Conflict error
         console.log('⚠️ Conflitto rilevato - aspetto 10 secondi prima di riconnettere...');
@@ -369,12 +368,19 @@ async function refreshSpotifyToken(refreshToken) {
 
 // Funzione per ottenere il token Spotify valido (con refresh automatico)
 async function getValidSpotifyToken() {
+  console.log('🔍 Controllo token Spotify...');
+
   if (!fs.existsSync('tokens')) {
+    console.log('📁 Cartella tokens non esiste');
     return null;
   }
 
   const files = fs.readdirSync('tokens');
+  console.log('📁 Files nella cartella tokens:', files);
+  console.log('📁 Numero di files trovati:', files.length);
+
   if (files.length === 0) {
+    console.log('📁 Nessun file token trovato');
     return null;
   }
 
@@ -647,7 +653,7 @@ app.get('/login', (req, res) => {
   console.log('CLIENT_ID:', CLIENT_ID ? 'SET' : 'NOT SET');
   console.log('BASE_URL:', BASE_URL);
   console.log('REDIRECT_URI:', REDIRECT_URI);
-  
+
   const scope = 'user-read-currently-playing user-read-playback-state';
   const query = qs.stringify({
     response_type: 'code',
@@ -655,10 +661,10 @@ app.get('/login', (req, res) => {
     scope: scope,
     redirect_uri: REDIRECT_URI
   });
-  
+
   const spotifyUrl = 'https://accounts.spotify.com/authorize?' + query;
   console.log('🔗 Spotify URL completo:', spotifyUrl);
-  
+
   res.redirect(spotifyUrl);
 });
 
@@ -668,7 +674,7 @@ app.get('/callback', async (req, res) => {
   console.log('Query params completi:', req.query);
   console.log('Code ricevuto:', req.query.code ? 'YES' : 'NO');
   console.log('Error ricevuto:', req.query.error || 'NO');
-  
+
   const code = req.query.code;
 
   if (req.query.error) {

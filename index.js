@@ -300,7 +300,7 @@ const app = express();
 // Prendi i dati dai secrets di Replit
 const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
-const BASE_URL = process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co` : 'https://boh-jh66yi7jk-us3rxys-projects.replit.app';
+const BASE_URL = 'https://workspace.nafisofia110.repl.co';
 const REDIRECT_URI = process.env.REDIRECT_URI || `${BASE_URL}/callback`;
 
 // Crea la cartella tokens se non esiste

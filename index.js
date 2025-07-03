@@ -189,6 +189,84 @@ if (!fs.existsSync('tokens')) {
   fs.mkdirSync('tokens');
 }
 
+// Funzione per refreshare il token Spotify
+async function refreshSpotifyToken(refreshToken) {
+  try {
+    const body = qs.stringify({
+      grant_type: 'refresh_token',
+      refresh_token: refreshToken
+    });
+
+    const response = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Basic ' + Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64'),
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: body
+    });
+
+    const data = await response.json();
+
+    if (data.error) {
+      console.error('Errore refresh token:', data.error);
+      return null;
+    }
+
+    // Salva il nuovo token
+    const newTokens = {
+      access_token: data.access_token,
+      refresh_token: refreshToken, // Il refresh token rimane lo stesso
+      expires_in: data.expires_in,
+      timestamp: Date.now()
+    };
+
+    const fileName = `tokens/spotify_${Date.now()}.json`;
+    fs.writeFileSync(fileName, JSON.stringify(newTokens, null, 2));
+
+    console.log('✅ Token Spotify refreshato con successo!');
+    return data.access_token;
+
+  } catch (error) {
+    console.error('Errore nel refresh del token:', error);
+    return null;
+  }
+}
+
+// Funzione per ottenere il token Spotify valido (con refresh automatico)
+async function getValidSpotifyToken() {
+  if (!fs.existsSync('tokens')) {
+    return null;
+  }
+
+  const files = fs.readdirSync('tokens');
+  if (files.length === 0) {
+    return null;
+  }
+
+  // Prendi il token più recente
+  const lastFile = files.sort().reverse()[0];
+  const tokenData = JSON.parse(fs.readFileSync('tokens/' + lastFile, 'utf8'));
+
+  // Verifica se il token è ancora valido (con margine di 5 minuti)
+  const now = Date.now();
+  const tokenAge = now - tokenData.timestamp;
+  const tokenExpiry = (tokenData.expires_in - 300) * 1000; // 5 minuti prima della scadenza
+
+  if (tokenAge < tokenExpiry) {
+    return tokenData.access_token;
+  }
+
+  // Token scaduto o in scadenza, prova a refresharlo
+  if (tokenData.refresh_token) {
+    console.log('🔄 Token Spotify in scadenza, effettuo refresh...');
+    const newAccessToken = await refreshSpotifyToken(tokenData.refresh_token);
+    return newAccessToken;
+  }
+
+  return null;
+}
+
 // ROUTE principale: mostra status del bot
 app.get('/', (req, res) => {
   res.send(`
@@ -204,45 +282,45 @@ app.get('/', (req, res) => {
             padding: 0;
             box-sizing: border-box;
           }
-          
+
           body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: white;
           }
-          
+
           .container {
             max-width: 1000px;
             margin: 0 auto;
             padding: 20px;
           }
-          
+
           .header {
             text-align: center;
             margin-bottom: 40px;
             animation: fadeInDown 1s ease-out;
           }
-          
+
           .logo {
             font-size: 3rem;
             font-weight: bold;
             margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
           }
-          
+
           .subtitle {
             font-size: 1.2rem;
             opacity: 0.9;
           }
-          
+
           .cards-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 30px;
             margin-bottom: 40px;
           }
-          
+
           .card {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
@@ -253,12 +331,12 @@ app.get('/', (req, res) => {
             transition: all 0.3s ease;
             animation: fadeInUp 1s ease-out;
           }
-          
+
           .card:hover {
             transform: translateY(-10px);
             box-shadow: 0 15px 45px rgba(0,0,0,0.2);
           }
-          
+
           .card-title {
             font-size: 1.5rem;
             font-weight: bold;
@@ -267,15 +345,15 @@ app.get('/', (req, res) => {
             align-items: center;
             gap: 10px;
           }
-          
+
           .emoji {
             font-size: 2rem;
           }
-          
+
           .command-list {
             list-style: none;
           }
-          
+
           .command-item {
             background: rgba(255,255,255,0.1);
             margin: 10px 0;
@@ -284,35 +362,35 @@ app.get('/', (req, res) => {
             border-left: 4px solid #1db954;
             transition: all 0.3s ease;
           }
-          
+
           .command-item:hover {
             background: rgba(255,255,255,0.2);
             transform: translateX(5px);
           }
-          
+
           .command {
             font-weight: bold;
             color: #1db954;
             font-family: 'Courier New', monospace;
           }
-          
+
           .description {
             margin-top: 5px;
             opacity: 0.9;
             font-size: 0.9rem;
           }
-          
+
           .spotify-section {
             background: linear-gradient(135deg, #1db954 0%, #1ed760 100%);
             color: white;
           }
-          
+
           .spotify-buttons {
             display: flex;
             gap: 15px;
             flex-wrap: wrap;
           }
-          
+
           .btn {
             display: inline-flex;
             align-items: center;
@@ -326,23 +404,23 @@ app.get('/', (req, res) => {
             transition: all 0.3s ease;
             border: 2px solid rgba(255,255,255,0.3);
           }
-          
+
           .btn:hover {
             background: rgba(255,255,255,0.3);
             transform: scale(1.05);
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
           }
-          
+
           .btn-primary {
             background: rgba(255,255,255,0.9);
             color: #1db954;
           }
-          
+
           .btn-primary:hover {
             background: white;
             color: #1db954;
           }
-          
+
           .status-indicator {
             display: inline-block;
             width: 12px;
@@ -352,30 +430,30 @@ app.get('/', (req, res) => {
             margin-right: 10px;
             animation: pulse 2s infinite;
           }
-          
+
           @keyframes pulse {
             0% { box-shadow: 0 0 0 0 rgba(29, 185, 84, 0.7); }
             70% { box-shadow: 0 0 0 10px rgba(29, 185, 84, 0); }
             100% { box-shadow: 0 0 0 0 rgba(29, 185, 84, 0); }
           }
-          
+
           @keyframes fadeInDown {
             from { opacity: 0; transform: translateY(-30px); }
             to { opacity: 1; transform: translateY(0); }
           }
-          
+
           @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(30px); }
             to { opacity: 1; transform: translateY(0); }
           }
-          
+
           .footer {
             text-align: center;
             margin-top: 40px;
             opacity: 0.7;
             font-size: 0.9rem;
           }
-          
+
           @media (max-width: 768px) {
             .container { padding: 15px; }
             .logo { font-size: 2rem; }
@@ -393,7 +471,7 @@ app.get('/', (req, res) => {
               Dashboard di Controllo Attiva
             </div>
           </div>
-          
+
           <div class="cards-container">
             <div class="card">
               <div class="card-title">
@@ -413,11 +491,11 @@ app.get('/', (req, res) => {
                   <div class="command">!diabla</div>
                   <div class="description">io divina tu divana</div>
                 </li>
-                
+
                 </li>
               </ul>
             </div>
-            
+
             <div class="card spotify-section">
               <div class="card-title">
                 <span class="emoji">🎵</span>
@@ -438,7 +516,7 @@ app.get('/', (req, res) => {
               </div>
             </div>
           </div>
-          
+
           <div class="footer">
             <p>💝 Made with love by Sofia Nafi</p>
           </div>

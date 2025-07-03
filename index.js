@@ -628,7 +628,7 @@ app.get('/', (req, res) => {
 
 // ROUTE: /login → reindirizza a Spotify per fare il login
 app.get('/login', (req, res) => {
-  const scope = 'user-read-currently-playing';
+  const scope = 'user-read-currently-playing user-read-playback-state';
   const query = qs.stringify({
     response_type: 'code',
     client_id: CLIENT_ID,

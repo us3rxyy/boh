@@ -133,12 +133,29 @@ async function getCurrentSpotifyTrack(accessToken) {
       }
     });
 
+    // Nessuna canzone in riproduzione
     if (response.status === 204) {
       return { error: 'Nessuna canzone in riproduzione' };
     }
 
+    // Token scaduto o non valido
+    if (response.status === 401) {
+      return { error: 'Token scaduto', needsReauth: true };
+    }
+
+    // Account Premium richiesto
+    if (response.status === 403) {
+      return { error: 'Spotify Premium richiesto per questa funzione' };
+    }
+
+    // Rate limit
+    if (response.status === 429) {
+      return { error: 'Troppe richieste, riprova tra qualche minuto' };
+    }
+
     if (!response.ok) {
-      return { error: 'Errore nell\'ottenere la canzone corrente' };
+      console.error('Spotify API Error:', response.status, await response.text());
+      return { error: `Errore Spotify (${response.status})` };
     }
 
     const data = await response.json();
@@ -152,7 +169,9 @@ async function getCurrentSpotifyTrack(accessToken) {
       artists: data.item.artists.map(artist => artist.name).join(', '),
       album: data.item.album.name,
       is_playing: data.is_playing,
-      external_url: data.item.external_urls.spotify
+      external_url: data.item.external_urls.spotify,
+      progress_ms: data.progress_ms,
+      duration_ms: data.item.duration_ms
     };
   } catch (error) {
     console.error('Errore Spotify API:', error);
@@ -162,13 +181,13 @@ async function getCurrentSpotifyTrack(accessToken) {
 
 // Funzione per gestire il comando !cur
 async function handleCurrentSong(sock, chatId) {
-  const token = await getValidSpotifyToken();
+  let token = await getValidSpotifyToken();
 
   if (!token) {
     // Nessun token valido, invia il link per connettersi
     const replyMessage = `🎵 *Connetti Spotify per usare !cur*
 
-🔗 https://boh-jh66yi7jk-us3rxys-projects.replit.app
+🔗 ${BASE_URL}
 
 Vai al link, clicca su "Connetti Spotify" e autorizza l'accesso!`;
 
@@ -177,15 +196,35 @@ Vai al link, clicca su "Connetti Spotify" e autorizza l'accesso!`;
   }
 
   // Token valido, ottieni la canzone corrente
-  const currentTrack = await getCurrentSpotifyTrack(token);
+  let currentTrack = await getCurrentSpotifyTrack(token);
+
+  // Se il token è scaduto, prova a refresharlo automaticamente
+  if (currentTrack.needsReauth) {
+    console.log('🔄 Token scaduto, tentativo di refresh automatico...');
+    token = await getValidSpotifyToken(); // Forza il refresh
+    if (token) {
+      currentTrack = await getCurrentSpotifyTrack(token);
+    }
+  }
 
   if (currentTrack.error) {
-    // Se c'è un errore, mostra comunque il link per riconnettere
-    const replyMessage = `❌ ${currentTrack.error}
+    // Se c'è ancora un errore dopo il tentativo di refresh
+    const replyMessage = currentTrack.needsReauth 
+      ? `❌ ${currentTrack.error}
 
-🔗 Riconnetti Spotify: https://boh-jh66yi7jk-us3rxys-projects.replit.app`;
+🔗 Riconnetti Spotify: ${BASE_URL}`
+      : `❌ ${currentTrack.error}`;
+    
     await sock.sendMessage(chatId, { text: replyMessage });
     return;
+  }
+
+  // Calcola progresso se disponibile
+  let progressText = '';
+  if (currentTrack.progress_ms && currentTrack.duration_ms) {
+    const progress = Math.floor((currentTrack.progress_ms / currentTrack.duration_ms) * 100);
+    const progressBar = '█'.repeat(Math.floor(progress / 10)) + '░'.repeat(10 - Math.floor(progress / 10));
+    progressText = `\n⏱️ ${progressBar} ${progress}%`;
   }
 
   // Formatta e invia la risposta con la canzone corrente
@@ -194,7 +233,7 @@ Vai al link, clicca su "Connetti Spotify" e autorizza l'accesso!`;
 
 ${statusIcon} **${currentTrack.name}**
 🎤 Artista: ${currentTrack.artists}
-💿 Album: ${currentTrack.album}
+💿 Album: ${currentTrack.album}${progressText}
 
 🔗 ${currentTrack.external_url}`;
 
@@ -261,7 +300,8 @@ const app = express();
 // Prendi i dati dai secrets di Replit
 const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
-const REDIRECT_URI = process.env.REDIRECT_URI || 'https://boh-jh66yi7jk-us3rxys-projects.replit.app/callback';
+const BASE_URL = process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co` : 'https://boh-jh66yi7jk-us3rxys-projects.replit.app';
+const REDIRECT_URI = process.env.REDIRECT_URI || `${BASE_URL}/callback`;
 
 // Crea la cartella tokens se non esiste
 if (!fs.existsSync('tokens')) {
@@ -569,6 +609,10 @@ app.get('/', (req, res) => {
                   <span>🔍</span>
                   Verifica Token
                 </a>
+                <a href="/clear" class="btn" style="background: rgba(255,0,0,0.2);">
+                  <span>🗑️</span>
+                  Cancella Token
+                </a>
               </div>
             </div>
           </div>
@@ -643,9 +687,23 @@ app.get('/test', (req, res) => {
   res.send(tokenData);
 });
 
+// ROUTE: /clear → cancella tutti i token salvati
+app.get('/clear', (req, res) => {
+  try {
+    const files = fs.readdirSync('tokens');
+    files.forEach(file => {
+      fs.unlinkSync(`tokens/${file}`);
+    });
+    res.send('✅ Tutti i token sono stati cancellati. Dovrai riconnetterti a Spotify.');
+  } catch (error) {
+    res.send('❌ Errore nella cancellazione dei token: ' + error.message);
+  }
+});
+
 // Avvia il server Express
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Server Express attivo su porta ${PORT}`);
-  console.log('URL del bot: https://boh-jh66yi7jk-us3rxys-projects.replit.app');
+  console.log(`URL del bot: ${BASE_URL}`);
+  console.log(`Redirect URI: ${REDIRECT_URI}`);
 });

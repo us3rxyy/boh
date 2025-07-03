@@ -168,9 +168,9 @@ const server = http.createServer((req, res) => {
         <h1>WhatsApp Bot è attivo!</h1>
         <p>Il bot sta funzionando e risponde ai comandi:</p>
         <ul>
-          <li><strong>!hey</strong> - Risposta sarcastica</li>
-          <li><strong>!schizzo</strong> - Messaggio dello schizzo</li>
-          <li><strong>!diabla</strong> - Frasi "io... tu..."</li>
+          <li><strong>!hey</strong> - il 99% sono insulti</li>
+          <li><strong>!schizzo</strong> - la risposta della tipa al tipo di schizzo male</li>
+          <li><strong>!diabla</strong> - Frasi da diabla</li>
         </ul>
       </body>
     </html>

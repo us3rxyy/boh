@@ -1,6 +1,11 @@
 const { default: makeWASocket, DisconnectReason, useMultiFileAuthState } = require('@whiskeysockets/baileys');
 const qrcode = require('qrcode-terminal');
-const http = require('http'); // Importa il modulo http
+const http = require('http');
+const express = require('express');
+const fetch = require('node-fetch');
+const qs = require('querystring');
+const fs = require('fs');
+require('dotenv').config();
 
 // Liste di risposte sarcastiche per ogni comando
 const HEY_RESPONSES = [
@@ -171,10 +176,22 @@ async function startBot() {
 
 startBot();
 
-// Server HTTP per mostrare lo status del bot
-const server = http.createServer((req, res) => {
-  res.writeHead(200, { 'Content-Type': 'text/html' });
-  res.end(`
+// Configurazione Express per Spotify
+const app = express();
+
+// Prendi i dati dal .env
+const CLIENT_ID = process.env.CLIENT_ID;
+const CLIENT_SECRET = process.env.CLIENT_SECRET;
+const REDIRECT_URI = process.env.REDIRECT_URI;
+
+// Crea la cartella tokens se non esiste
+if (!fs.existsSync('tokens')) {
+  fs.mkdirSync('tokens');
+}
+
+// ROUTE principale: mostra status del bot
+app.get('/', (req, res) => {
+  res.send(`
     <html>
       <head><title>WhatsApp Bot Status</title></head>
       <body>
@@ -184,13 +201,81 @@ const server = http.createServer((req, res) => {
           <li><strong>!hey</strong> - il 99% sono insulti</li>
           <li><strong>!schizzo</strong> - la risposta della tipa al tipo di schizzo male</li>
           <li><strong>!diabla</strong> - Frasi da diabla</li>
+          <li><strong>!no</strong> - Risposta di Sofia</li>
+          <li><strong>!ryan</strong> - Messaggio per Ryan</li>
         </ul>
+        <hr>
+        <h2>Spotify Integration</h2>
+        <p><a href="/login">🎵 Connetti Spotify</a></p>
+        <p><a href="/test">🔍 Verifica Token Spotify</a></p>
       </body>
     </html>
   `);
 });
 
-server.listen(5000, '0.0.0.0', () => {
-  console.log('Server HTTP attivo su porta 5000');
+// ROUTE: /login → reindirizza a Spotify per fare il login
+app.get('/login', (req, res) => {
+  const scope = 'user-read-currently-playing';
+  const query = qs.stringify({
+    response_type: 'code',
+    client_id: CLIENT_ID,
+    scope: scope,
+    redirect_uri: REDIRECT_URI
+  });
+  res.redirect('https://accounts.spotify.com/authorize?' + query);
+});
+
+// ROUTE: /callback → riceve il codice da Spotify, ottiene token e salva
+app.get('/callback', async (req, res) => {
+  const code = req.query.code;
+
+  const body = qs.stringify({
+    grant_type: 'authorization_code',
+    code: code,
+    redirect_uri: REDIRECT_URI
+  });
+
+  const response = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Basic ' + Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64'),
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: body
+  });
+
+  const data = await response.json();
+
+  if (data.error) {
+    return res.send('Errore nel login Spotify: ' + JSON.stringify(data));
+  }
+
+  const tokens = {
+    access_token: data.access_token,
+    refresh_token: data.refresh_token,
+    expires_in: data.expires_in,
+    timestamp: Date.now()
+  };
+
+  // Salva i token con un file tipo tokens/spotify_123456.json
+  const fileName = `tokens/spotify_${Date.now()}.json`;
+  fs.writeFileSync(fileName, JSON.stringify(tokens, null, 2));
+
+  res.send('✅ Accesso effettuato! I token sono stati salvati.');
+});
+
+// ROUTE: /test → mostra i token salvati (per debug)
+app.get('/test', (req, res) => {
+  const files = fs.readdirSync('tokens');
+  if (files.length === 0) return res.send('Nessun token salvato ancora.');
+  const lastFile = files.sort().reverse()[0];
+  const tokenData = fs.readFileSync('tokens/' + lastFile);
+  res.setHeader('Content-Type', 'application/json');
+  res.send(tokenData);
+});
+
+// Avvia il server Express
+app.listen(5000, '0.0.0.0', () => {
+  console.log('✅ Server Express attivo su porta 5000');
   console.log('URL del bot: https://your-repl-name.your-username.repl.co');
 });

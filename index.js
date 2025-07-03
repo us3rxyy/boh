@@ -318,8 +318,15 @@ const BASE_URL = 'https://boh-zl4s.onrender.com';
 const REDIRECT_URI = `https://boh-zl4s.onrender.com/callback`;
 
 // Crea la cartella tokens se non esiste
+console.log('🚀 Controllo cartella tokens all\'avvio...');
 if (!fs.existsSync('tokens')) {
+  console.log('📁 Cartella tokens non esiste, la creo...');
   fs.mkdirSync('tokens');
+  console.log('📁 Cartella tokens creata');
+} else {
+  console.log('📁 Cartella tokens già esiste');
+  const files = fs.readdirSync('tokens');
+  console.log('📁 Files trovati all\'avvio:', files);
 }
 
 // Funzione per refreshare il token Spotify
@@ -723,6 +730,21 @@ app.get('/callback', async (req, res) => {
   // Salva i token con un file tipo tokens/spotify_123456.json
   const fileName = `tokens/spotify_${Date.now()}.json`;
   fs.writeFileSync(fileName, JSON.stringify(tokens, null, 2));
+
+  console.log('💾 Token salvato in:', fileName);
+  console.log('💾 Contenuto token:', JSON.stringify(tokens, null, 2));
+  
+  // Verifica immediata che il file sia stato salvato
+  const savedFiles = fs.readdirSync('tokens');
+  console.log('💾 Files nella cartella tokens dopo salvataggio:', savedFiles);
+  
+  if (fs.existsSync(fileName)) {
+    console.log('✅ File token confermato esistente');
+    const fileContent = fs.readFileSync(fileName, 'utf8');
+    console.log('✅ Contenuto file letto:', fileContent);
+  } else {
+    console.log('❌ ERRORE: File token non trovato dopo salvataggio!');
+  }
 
   res.send('✅ Accesso effettuato! I token sono stati salvati.');
 });

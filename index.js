@@ -665,7 +665,8 @@ app.get('/test', (req, res) => {
 });
 
 // Avvia il server Express
-app.listen(5000, '0.0.0.0', () => {
-  console.log('✅ Server Express attivo su porta 5000');
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`✅ Server Express attivo su porta ${PORT}`);
   console.log('URL del bot:', process.env.REPL_URL || 'https://' + process.env.REPL_SLUG + '.' + process.env.REPL_OWNER + '.repl.co');
 });

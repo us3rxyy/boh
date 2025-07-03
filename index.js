@@ -279,10 +279,10 @@ startBot();
 // Configurazione Express per Spotify
 const app = express();
 
-// Configurazione per Replit
+// Configurazione per Render
 const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
-const BASE_URL = 'https://workspace-nafisofia110.replit.app';
+const BASE_URL = 'https://boh-zl4s.onrender.com';
 const REDIRECT_URI = `${BASE_URL}/callback`;
 
 // Crea la cartella tokens se non esiste

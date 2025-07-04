@@ -350,13 +350,21 @@ async function refreshSpotifyToken(refreshToken) {
       return null;
     }
 
-    // Salva il nuovo token nelle variabili d'ambiente
-    process.env.SPOTIFY_ACCESS_TOKEN = data.access_token;
-    process.env.SPOTIFY_REFRESH_TOKEN = refreshToken; // Il refresh token rimane lo stesso
-    process.env.SPOTIFY_EXPIRES_IN = data.expires_in.toString();
-    process.env.SPOTIFY_TIMESTAMP = Date.now().toString();
+    // Salva il nuovo token nel file JSON
+    const tokens = {
+      access_token: data.access_token,
+      refresh_token: refreshToken, // Il refresh token rimane lo stesso
+      expires_in: data.expires_in,
+      timestamp: Date.now()
+    };
 
-    console.log('✅ Token Spotify refreshato con successo!');
+    try {
+      fs.writeFileSync('spotify_tokens.json', JSON.stringify(tokens, null, 2));
+      console.log('✅ Token Spotify refreshato e salvato nel file!');
+    } catch (error) {
+      console.log('❌ Errore nel salvataggio del token refreshato:', error.message);
+    }
+
     return data.access_token;
 
   } catch (error) {
@@ -369,22 +377,22 @@ async function refreshSpotifyToken(refreshToken) {
 async function getValidSpotifyToken() {
   console.log('🔍 Controllo token Spotify...');
 
-  // Controlla se abbiamo i token nelle variabili d'ambiente
-  if (!process.env.SPOTIFY_ACCESS_TOKEN || !process.env.SPOTIFY_REFRESH_TOKEN) {
-    console.log('📁 Nessun token trovato nelle variabili d\'ambiente');
+  // Controlla se esiste il file token
+  const fileName = 'spotify_tokens.json';
+  if (!fs.existsSync(fileName)) {
+    console.log('📁 File token non esiste:', fileName);
     return null;
   }
 
-  console.log('📁 Token trovati nelle variabili d\'ambiente');
-
-  const tokenData = {
-    access_token: process.env.SPOTIFY_ACCESS_TOKEN,
-    refresh_token: process.env.SPOTIFY_REFRESH_TOKEN,
-    expires_in: parseInt(process.env.SPOTIFY_EXPIRES_IN) || 3600,
-    timestamp: parseInt(process.env.SPOTIFY_TIMESTAMP) || Date.now()
-  };
-
-  console.log('📁 Token letti con successo');
+  let tokenData;
+  try {
+    const fileContent = fs.readFileSync(fileName, 'utf8');
+    tokenData = JSON.parse(fileContent);
+    console.log('📁 Token letti dal file con successo');
+  } catch (error) {
+    console.log('❌ Errore nella lettura del file token:', error.message);
+    return null;
+  }
 
   // Verifica se il token è ancora valido (con margine di 5 minuti)
   const now = Date.now();
@@ -392,6 +400,7 @@ async function getValidSpotifyToken() {
   const tokenExpiry = (tokenData.expires_in - 300) * 1000; // 5 minuti prima della scadenza
 
   if (tokenAge < tokenExpiry) {
+    console.log('✅ Token ancora valido');
     return tokenData.access_token;
   }
 

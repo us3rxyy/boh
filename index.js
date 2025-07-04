@@ -359,7 +359,8 @@ async function refreshSpotifyToken(refreshToken) {
     };
 
     try {
-      fs.writeFileSync('spotify_tokens.json', JSON.stringify(tokens, null, 2));
+      const filePath = __dirname + '/spotify_tokens.json';
+      fs.writeFileSync(filePath, JSON.stringify(tokens, null, 2));
       console.log('✅ Token Spotify refreshato e salvato nel file!');
     } catch (error) {
       console.log('❌ Errore nel salvataggio del token refreshato:', error.message);
@@ -379,14 +380,18 @@ async function getValidSpotifyToken() {
 
   // Controlla se esiste il file token
   const fileName = 'spotify_tokens.json';
-  if (!fs.existsSync(fileName)) {
-    console.log('📁 File token non esiste:', fileName);
+  const filePath = __dirname + '/' + fileName;
+  
+  console.log('📁 Cercando file token in:', filePath);
+  
+  if (!fs.existsSync(filePath)) {
+    console.log('📁 File token non esiste:', filePath);
     return null;
   }
 
   let tokenData;
   try {
-    const fileContent = fs.readFileSync(fileName, 'utf8');
+    const fileContent = fs.readFileSync(filePath, 'utf8');
     tokenData = JSON.parse(fileContent);
     console.log('📁 Token letti dal file con successo');
   } catch (error) {
@@ -703,51 +708,75 @@ app.get('/callback', async (req, res) => {
   console.log('🔧 CLIENT_ID per auth:', CLIENT_ID ? 'SET' : 'NOT SET');
   console.log('🔧 CLIENT_SECRET per auth:', CLIENT_SECRET ? 'SET' : 'NOT SET');
 
-  const response = await fetch('https://accounts.spotify.com/api/token', {
-    method: 'POST',
-    headers: {
-      'Authorization': 'Basic ' + Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64'),
-      'Content-Type': 'application/x-www-form-urlencoded'
-    },
-    body: body
-  });
-
-  const data = await response.json();
-  console.log('🎵 Spotify response:', data);
-
-  if (data.error) {
-    console.log('❌ Errore token:', data);
-    return res.send('❌ Errore nel login Spotify: ' + JSON.stringify(data, null, 2));
-  }
-
-  const tokens = {
-    access_token: data.access_token,
-    refresh_token: data.refresh_token,
-    expires_in: data.expires_in,
-    timestamp: Date.now()
-  };
-
-  // Salva i token nel file JSON
-  const fileName = 'spotify_tokens.json';
-
-  console.log('💾 Salvando token nel file:', fileName);
-  console.log('💾 Contenuto token:', JSON.stringify(tokens, null, 2));
-
   try {
-    fs.writeFileSync(fileName, JSON.stringify(tokens, null, 2));
+    const response = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Basic ' + Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64'),
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: body
+    });
+
+    const data = await response.json();
+    console.log('🎵 Spotify response:', data);
+
+    if (data.error) {
+      console.log('❌ Errore token:', data);
+      return res.send('❌ Errore nel login Spotify: ' + JSON.stringify(data, null, 2));
+    }
+
+    const tokens = {
+      access_token: data.access_token,
+      refresh_token: data.refresh_token,
+      expires_in: data.expires_in,
+      timestamp: Date.now()
+    };
+
+    // Salva i token nel file JSON
+    const fileName = 'spotify_tokens.json';
+    const filePath = __dirname + '/' + fileName;
+
+    console.log('💾 Salvando token nel file:', filePath);
+    console.log('💾 Contenuto token:', JSON.stringify(tokens, null, 2));
+
+    fs.writeFileSync(filePath, JSON.stringify(tokens, null, 2));
     console.log('💾 Token salvati nel file con successo');
 
     // Verifica immediata
-    if (fs.existsSync(fileName)) {
-      const verification = JSON.parse(fs.readFileSync(fileName, 'utf8'));
+    if (fs.existsSync(filePath)) {
+      const verification = JSON.parse(fs.readFileSync(filePath, 'utf8'));
       console.log('✅ File token verificato, chiavi:', Object.keys(verification));
+      
+      res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Spotify Connesso!</title>
+          <style>
+            body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #1db954; color: white; }
+            .success { background: rgba(255,255,255,0.1); padding: 30px; border-radius: 10px; }
+          </style>
+        </head>
+        <body>
+          <div class="success">
+            <h1>✅ Spotify Connesso!</h1>
+            <p>Il bot è ora pronto per i comandi musicali!</p>
+            <p><strong>Prova su WhatsApp:</strong> !cur</p>
+            <hr>
+            <small>Token salvato: ${JSON.stringify(verification, null, 2)}</small>
+          </div>
+        </body>
+        </html>
+      `);
+    } else {
+      throw new Error('File non creato correttamente');
     }
-  } catch (error) {
-    console.log('❌ ERRORE nel salvataggio:', error.message);
-    return res.send('❌ Errore nel salvataggio: ' + error.message);
-  }
 
-  res.send('✅ Accesso effettuato! I token sono stati salvati nel file.');
+  } catch (error) {
+    console.log('❌ ERRORE COMPLETO:', error.message);
+    return res.send('❌ Errore completo: ' + error.message + '\n\nStack: ' + error.stack);
+  }
 });
 
 // ROUTE: /test → mostra i token salvati (per debug)

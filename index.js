@@ -317,19 +317,13 @@ const CLIENT_SECRET = process.env.CLIENT_SECRET;
 const BASE_URL = 'https://boh-zl4s.onrender.com';
 const REDIRECT_URI = `https://boh-zl4s.onrender.com/callback`;
 
-// Verifica se esiste il file dei token all'avvio
-console.log('🚀 Controllo file token all\'avvio...');
-const tokenFile = 'spotify_tokens.json';
-if (fs.existsSync(tokenFile)) {
-  console.log('📁 File token trovato all\'avvio:', tokenFile);
-  try {
-    const tokenData = JSON.parse(fs.readFileSync(tokenFile, 'utf8'));
-    console.log('📁 Token valido trovato per utente');
-  } catch (error) {
-    console.log('❌ File token corrotto, sarà necessario riconnettersi');
-  }
+// Verifica se esistono i token nelle variabili d'ambiente all'avvio
+console.log('🚀 Controllo token all\'avvio...');
+if (process.env.SPOTIFY_ACCESS_TOKEN && process.env.SPOTIFY_REFRESH_TOKEN) {
+  console.log('📁 Token trovati nelle variabili d\'ambiente all\'avvio');
+  console.log('📁 Token valido presente per utente');
 } else {
-  console.log('📁 Nessun file token all\'avvio');
+  console.log('📁 Nessun token nelle variabili d\'ambiente all\'avvio');
 }
 
 // Funzione per refreshare il token Spotify
@@ -356,16 +350,11 @@ async function refreshSpotifyToken(refreshToken) {
       return null;
     }
 
-    // Salva il nuovo token
-    const newTokens = {
-      access_token: data.access_token,
-      refresh_token: refreshToken, // Il refresh token rimane lo stesso
-      expires_in: data.expires_in,
-      timestamp: Date.now()
-    };
-
-    const fileName = `spotify_tokens.json`;
-    fs.writeFileSync(fileName, JSON.stringify(newTokens, null, 2));
+    // Salva il nuovo token nelle variabili d'ambiente
+    process.env.SPOTIFY_ACCESS_TOKEN = data.access_token;
+    process.env.SPOTIFY_REFRESH_TOKEN = refreshToken; // Il refresh token rimane lo stesso
+    process.env.SPOTIFY_EXPIRES_IN = data.expires_in.toString();
+    process.env.SPOTIFY_TIMESTAMP = Date.now().toString();
 
     console.log('✅ Token Spotify refreshato con successo!');
     return data.access_token;
@@ -380,16 +369,22 @@ async function refreshSpotifyToken(refreshToken) {
 async function getValidSpotifyToken() {
   console.log('🔍 Controllo token Spotify...');
 
-  const tokenFile = 'spotify_tokens.json';
-
-  if (!fs.existsSync(tokenFile)) {
-    console.log('📁 File token non esiste:', tokenFile);
+  // Controlla se abbiamo i token nelle variabili d'ambiente
+  if (!process.env.SPOTIFY_ACCESS_TOKEN || !process.env.SPOTIFY_REFRESH_TOKEN) {
+    console.log('📁 Nessun token trovato nelle variabili d\'ambiente');
     return null;
   }
 
-  console.log('📁 File token trovato:', tokenFile);
-  const tokenData = JSON.parse(fs.readFileSync(tokenFile, 'utf8'));
-  console.log('📁 Token letto con successo');
+  console.log('📁 Token trovati nelle variabili d\'ambiente');
+  
+  const tokenData = {
+    access_token: process.env.SPOTIFY_ACCESS_TOKEN,
+    refresh_token: process.env.SPOTIFY_REFRESH_TOKEN,
+    expires_in: parseInt(process.env.SPOTIFY_EXPIRES_IN) || 3600,
+    timestamp: parseInt(process.env.SPOTIFY_TIMESTAMP) || Date.now()
+  };
+  
+  console.log('📁 Token letti con successo');
 
   // Verifica se il token è ancora valido (con margine di 5 minuti)
   const now = Date.now();
@@ -723,71 +718,48 @@ app.get('/callback', async (req, res) => {
     timestamp: Date.now()
   };
 
-  // Salva i token in un file fisso
-  const fileName = `spotify_tokens.json`;
-  
+  // Salva i token come variabili d'ambiente persistenti
   console.log('💾 Contenuto token:', JSON.stringify(tokens, null, 2));
 
-  // Debug prima del salvataggio
-  console.log('💾 PRIMA del salvataggio:');
-  const filesBefore = fs.readdirSync('.');
-  console.log('💾 File prima del salvataggio:', filesBefore);
-  console.log('💾 Directory corrente:', process.cwd());
-  console.log('💾 Nome file da salvare:', fileName);
+  // Salva nelle variabili d'ambiente (persistenti su Render)
+  process.env.SPOTIFY_ACCESS_TOKEN = tokens.access_token;
+  process.env.SPOTIFY_REFRESH_TOKEN = tokens.refresh_token;
+  process.env.SPOTIFY_EXPIRES_IN = tokens.expires_in.toString();
+  process.env.SPOTIFY_TIMESTAMP = tokens.timestamp.toString();
 
-  // Tentativo di salvataggio con gestione errori
-  try {
-    fs.writeFileSync(fileName, JSON.stringify(tokens, null, 2));
-    console.log('💾 writeFileSync completato senza errori');
-  } catch (writeError) {
-    console.log('❌ ERRORE durante writeFileSync:', writeError);
-    return res.send('❌ Errore nel salvataggio del file: ' + writeError.message);
-  }
-
-  // Debug dopo il salvataggio
-  console.log('💾 DOPO il salvataggio:');
-  const filesAfter = fs.readdirSync('.');
-  console.log('💾 File dopo il salvataggio:', filesAfter);
-
-  if (fs.existsSync(fileName)) {
-    console.log('✅ File token confermato esistente');
-    const fileContent = fs.readFileSync(fileName, 'utf8');
-    console.log('✅ Contenuto file letto:', fileContent);
-
-    // Verifica che il contenuto sia valido JSON
-    try {
-      const parsedContent = JSON.parse(fileContent);
-      console.log('✅ File JSON valido, chiavi:', Object.keys(parsedContent));
-    } catch (parseError) {
-      console.log('❌ File JSON non valido:', parseError);
-    }
-  } else {
-    console.log('❌ ERRORE: File token non trovato dopo salvataggio!');
-    console.log('❌ Path assoluto tentato:', require('path').resolve(fileName));
-  }
+  console.log('💾 Token salvati nelle variabili d\'ambiente');
+  console.log('✅ Access token salvato:', process.env.SPOTIFY_ACCESS_TOKEN ? 'YES' : 'NO');
+  console.log('✅ Refresh token salvato:', process.env.SPOTIFY_REFRESH_TOKEN ? 'YES' : 'NO');
 
   res.send('✅ Accesso effettuato! I token sono stati salvati.');
 });
 
 // ROUTE: /test → mostra i token salvati (per debug)
 app.get('/test', (req, res) => {
-  const tokenFile = 'spotify_tokens.json';
-  if (!fs.existsSync(tokenFile)) return res.send('Nessun token salvato ancora.');
-  const tokenData = fs.readFileSync(tokenFile);
+  if (!process.env.SPOTIFY_ACCESS_TOKEN || !process.env.SPOTIFY_REFRESH_TOKEN) {
+    return res.send('Nessun token salvato ancora.');
+  }
+  
+  const tokenData = {
+    access_token: process.env.SPOTIFY_ACCESS_TOKEN ? '***PRESENTE***' : 'MANCANTE',
+    refresh_token: process.env.SPOTIFY_REFRESH_TOKEN ? '***PRESENTE***' : 'MANCANTE',
+    expires_in: process.env.SPOTIFY_EXPIRES_IN || 'MANCANTE',
+    timestamp: process.env.SPOTIFY_TIMESTAMP || 'MANCANTE'
+  };
+  
   res.setHeader('Content-Type', 'application/json');
-  res.send(tokenData);
+  res.send(JSON.stringify(tokenData, null, 2));
 });
 
 // ROUTE: /clear → cancella tutti i token salvati
 app.get('/clear', (req, res) => {
   try {
-    const tokenFile = 'spotify_tokens.json';
-    if (fs.existsSync(tokenFile)) {
-      fs.unlinkSync(tokenFile);
-      res.send('✅ Token cancellato. Dovrai riconnetterti a Spotify.');
-    } else {
-      res.send('✅ Nessun token da cancellare.');
-    }
+    delete process.env.SPOTIFY_ACCESS_TOKEN;
+    delete process.env.SPOTIFY_REFRESH_TOKEN;
+    delete process.env.SPOTIFY_EXPIRES_IN;
+    delete process.env.SPOTIFY_TIMESTAMP;
+    
+    res.send('✅ Token cancellati dalle variabili d\'ambiente. Dovrai riconnetterti a Spotify.');
   } catch (error) {
     res.send('❌ Errore nella cancellazione dei token: ' + error.message);
   }

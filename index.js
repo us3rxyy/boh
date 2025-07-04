@@ -359,7 +359,7 @@ async function refreshSpotifyToken(refreshToken) {
     };
 
     try {
-      const filePath = __dirname + '/spotify_tokens.json';
+      const filePath = './spotify_tokens.json';
       fs.writeFileSync(filePath, JSON.stringify(tokens, null, 2));
       console.log('✅ Token Spotify refreshato e salvato nel file!');
     } catch (error) {
@@ -380,7 +380,7 @@ async function getValidSpotifyToken() {
 
   // Controlla se esiste il file token
   const fileName = 'spotify_tokens.json';
-  const filePath = __dirname + '/' + fileName;
+  const filePath = './spotify_tokens.json';
   
   console.log('📁 Cercando file token in:', filePath);
   
@@ -735,7 +735,7 @@ app.get('/callback', async (req, res) => {
 
     // Salva i token nel file JSON
     const fileName = 'spotify_tokens.json';
-    const filePath = __dirname + '/' + fileName;
+    const filePath = './spotify_tokens.json';
 
     console.log('💾 Salvando token nel file:', filePath);
     console.log('💾 Contenuto token:', JSON.stringify(tokens, null, 2));
